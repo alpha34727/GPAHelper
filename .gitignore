@@ -1,0 +1,13 @@
+# Question banks never go to GitHub: the public site gets them through "匯入題庫"
+subjects/*/
+subjects/local.js
+題庫匯入檔/
+微生物學及免疫學/
+*.pdf
+*.docx
+
+# Local tooling
+.claude/
+node_modules/
+.DS_Store
+Thumbs.db

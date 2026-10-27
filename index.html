@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GPA Helper | 多科目考古題刷題庫</title>
+  <meta name="description" content="GPA Helper：多科目考古題刷題網站，支援科目切換、主題分類篩選、跨年度相同題目並排對比、年份排序、隨機抽題測驗與跨裝置進度同步。">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+TC:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css?v=4.2">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Header Navigation -->
+    <header class="header-nav">
+      <div class="brand-section">
+        <button id="sidebarToggleBtn" class="btn btn-secondary btn-icon-only sidebar-toggle-btn" aria-label="收合/展開側邊欄" title="收合/展開側邊欄">
+          <svg class="svg-icon" viewBox="0 0 24 24"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+        </button>
+        <div class="brand-badge-icon" aria-hidden="true">
+          <svg class="svg-icon" viewBox="0 0 24 24" style="width: 18px; height: 18px;"><path d="M22 10 12 5 2 10l10 5 10-5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+        </div>
+        <div class="brand-title-wrap">
+          <h1>GPA Helper</h1>
+          <button type="button" id="subjectSwitchBtn" class="subject-switch-btn" title="切換科目">
+            <span id="currentSubjectName" class="subject-switch-name">選擇科目</span>
+            <span id="currentSubjectSubtitle" class="sub-tag" style="display: none;"></span>
+            <svg class="svg-icon" viewBox="0 0 24 24" style="width: 13px; height: 13px;"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Search Input -->
+      <div class="search-box-wrap" id="searchBoxWrap">
+        <svg class="svg-icon search-icon-svg" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        <input type="text" id="searchInput" placeholder="搜尋題號 (如 Q0129)、題幹、專有名詞、選項或詳解..." autocomplete="off">
+        <button type="button" id="mobileSearchCloseBtn" class="mobile-search-close-btn" aria-label="關閉搜尋" title="關閉搜尋">
+          <svg class="svg-icon" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="header-actions">
+        <button type="button" id="mobileSearchToggleBtn" class="btn btn-secondary btn-icon-only mobile-search-toggle-btn" aria-label="搜尋題目" title="搜尋題目">
+          <svg class="svg-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        </button>
+        <button id="openQuizModalBtn" class="btn btn-primary" title="隨機抽題測驗">
+          <svg class="svg-icon" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2"/><circle cx="8" cy="8" r="1.5"/><circle cx="16" cy="16" r="1.5"/><circle cx="12" cy="12" r="1.5"/></svg>
+          <span class="btn-text-responsive">隨機抽題</span><span class="btn-text-desktop">測驗</span><span class="btn-text-mobile">抽題</span>
+        </button>
+        <div class="mobile-more-wrap">
+          <button type="button" id="mobileMoreBtn" class="btn btn-secondary btn-icon-only mobile-more-btn" aria-label="更多功能" aria-haspopup="true" aria-expanded="false" title="更多功能">
+            <svg class="svg-icon" viewBox="0 0 24 24"><circle cx="12" cy="5" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="12" cy="19" r="1.2"/></svg>
+          </button>
+          <div id="mobileMoreMenu" class="mobile-more-menu" role="menu">
+            <button type="button" class="mobile-more-item" role="menuitem" data-proxy="openSyncModalBtn">
+              <svg class="svg-icon" viewBox="0 0 24 24"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="m16 16-4-4-4 4"/><path d="M12 12v9"/></svg>
+              <span>雲端同步</span>
+            </button>
+            <button type="button" class="mobile-more-item" role="menuitem" data-proxy="resetProgressBtn">
+              <svg class="svg-icon" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+              <span>重設本科進度</span>
+            </button>
+          </div>
+        </div>
+        <button id="openSyncModalBtn" class="btn btn-secondary" title="跨裝置雲端進度同步 (GitHub Gist)">
+          <svg class="svg-icon" viewBox="0 0 24 24"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="m16 16-4-4-4 4"/><path d="M12 12v9"/></svg>
+          <span class="btn-text-desktop">雲端</span><span>同步</span>
+        </button>
+        <button id="resetProgressBtn" class="btn btn-secondary" title="重設個人作答紀錄">
+          <svg class="svg-icon" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+          <span class="btn-text-desktop">重設進度</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Layout Container -->
+    <div class="main-layout">
+      <!-- Sidebar Filters -->
+      <aside id="sidebar" class="sidebar">
+        <!-- Sidebar Header with Close Button -->
+        <div class="sidebar-header-bar">
+          <div class="sidebar-title-group">
+            <svg class="svg-icon" viewBox="0 0 24 24"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+            <span>題目分類與篩選</span>
+          </div>
+          <button id="sidebarCloseBtn" class="sidebar-close-btn" aria-label="收合側邊欄" title="收合側邊欄">
+            <svg class="svg-icon" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>
+          </button>
+        </div>
+
+        <div class="sidebar-scroll-body">
+          <!-- Topic Filter -->
+          <div class="sidebar-section">
+            <div class="sidebar-section-title">
+              <span id="topicSectionTitle">主題分類 (Topics)</span>
+              <div>
+                <button id="selectAllTopicsBtn" class="section-action-btn">全選</button>
+                <button id="clearAllTopicsBtn" class="section-action-btn">清除</button>
+              </div>
+            </div>
+            <div class="sidebar-sub-hint" id="topicSubHint"></div>
+            <div id="topicList" class="topic-list">
+              <!-- Rendered by app.js -->
+            </div>
+          </div>
+
+          <!-- Year Sorting -->
+          <div class="sidebar-section" id="sortSection">
+            <div class="sidebar-section-title">
+              <span>題目排序方式</span>
+            </div>
+            <select id="sortSelect" class="select-input">
+              <option value="repeat_desc">出現頻率高到低 (優先刷重複題)</option>
+              <option value="year_desc">最新出現年份</option>
+              <option value="year_asc">最早出現年份</option>
+              <option value="qid_asc">題號順序</option>
+              <option value="random">隨機隨選順序</option>
+            </select>
+          </div>
+
+          <!-- Year Filter Chips -->
+          <div class="sidebar-section" id="yearSection">
+            <div class="sidebar-section-title">
+              <span>出現年份篩選</span>
+              <div>
+                <button id="selectAllYearsBtn" class="section-action-btn">全選</button>
+                <button id="clearAllYearsBtn" class="section-action-btn">清除</button>
+              </div>
+            </div>
+            <div id="yearTagsGrid" class="year-tags-grid">
+              <!-- Rendered by app.js -->
+            </div>
+          </div>
+
+          <!-- Status Filter -->
+          <div class="sidebar-section">
+            <div class="sidebar-section-title">
+              <span>題目狀態過濾</span>
+            </div>
+            <div class="pill-group">
+              <div class="pill-option active" data-status-filter="all">
+                <span>全部考題</span>
+              </div>
+              <div class="pill-option" data-status-filter="repeat_only" id="repeatOnlyPill">
+                <span>僅看跨年度重複題 (<span id="statRepeatOnlyCount">0</span>組)</span>
+              </div>
+              <div class="pill-option" data-status-filter="mistakes">
+                <span>僅看我的錯題 (<span id="statMistakesCount">0</span>)</span>
+              </div>
+              <div class="pill-option" data-status-filter="starred">
+                <span>僅看我的收藏 (<span id="statStarredCount">0</span>)</span>
+              </div>
+              <div class="pill-option" data-status-filter="unanswered">
+                <span>僅看未作答</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sticky Mobile Footer -->
+        <div class="sidebar-mobile-footer">
+          <button id="sidebarApplyMobileBtn" class="btn btn-primary" style="width: 100%;">
+            完成篩選 (查看 <span id="mobileFilteredCount">0</span> 題)
+          </button>
+        </div>
+      </aside>
+
+      <!-- Sidebar Backdrop for Mobile/Drawer -->
+      <div id="sidebarBackdrop" class="sidebar-backdrop" aria-hidden="true"></div>
+
+      <!-- Main Content Area -->
+      <main class="content-area">
+        <!-- Filter Summary Bar -->
+        <div class="filter-summary-bar">
+          <div class="summary-stats-wrap">
+            <!-- 區塊一：當前篩選範圍作答狀態 -->
+            <div class="stat-group stat-group-filtered" id="filteredStatsGroup">
+              <span class="stat-group-badge badge-filter" title="目前左側篩選條件涵蓋的範圍">
+                <svg class="svg-icon" viewBox="0 0 24 24" style="width: 12px; height: 12px;"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+                <span>篩選範圍</span>
+              </span>
+              <div class="stat-item" title="符合目前篩選條件的題目總數">
+                <span class="stat-label">符合條件：</span>
+                <strong id="filteredCount" class="highlight">0</strong>
+                <span class="stat-unit">題</span>
+              </div>
+              <div class="stat-item" id="filteredRepeatStat" title="此篩選範圍內跨多個年份出現的重複題數">
+                <span class="stat-label">跨年重複：</span>
+                <strong id="filteredRepeatCount" class="repeat-highlight">0</strong>
+                <span class="stat-unit">題</span>
+              </div>
+              <div class="stat-item" title="目前篩選範圍的作答進度">
+                <span class="stat-label">作答進度：</span>
+                <span class="stat-val-wrap">
+                  <strong id="filteredAnsweredCount">0</strong> / <strong id="filteredTotalCount">0</strong>
+                  <span id="filteredProgressPct" class="stat-sub-pct">(0%)</span>
+                </span>
+              </div>
+              <div class="stat-item" title="目前篩選範圍已答題目的答對率">
+                <span class="stat-label">正確率：</span>
+                <span class="stat-val-wrap">
+                  <strong id="filteredAccuracyRate" class="highlight">0%</strong>
+                  <span id="filteredDetailCounts" class="stat-sub-detail">(對 0 · 錯 0)</span>
+                </span>
+              </div>
+            </div>
+
+            <!-- 分隔線 -->
+            <div class="stat-group-separator" aria-hidden="true"></div>
+
+            <!-- 區塊二：全題庫整體作答狀態 -->
+            <div class="stat-group stat-group-all" id="allStatsGroup">
+              <span class="stat-group-badge badge-all" id="allStatsBadge" title="本科目全部題目的總體作答進度與正確率">
+                <svg class="svg-icon" viewBox="0 0 24 24" style="width: 12px; height: 12px;"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M6 6h10M6 10h10"/></svg>
+                <span>全題庫總計</span>
+              </span>
+              <div class="stat-item" title="全題庫所有題目的作答進度">
+                <span class="stat-label">總作答進度：</span>
+                <span class="stat-val-wrap">
+                  <strong id="progressAnsweredCount">0</strong> / <strong id="progressTotalPoolCount">0</strong>
+                  <span id="allProgressPct" class="stat-sub-pct">(0%)</span>
+                </span>
+              </div>
+              <div class="stat-item" title="全站所有已答題目的總正確率">
+                <span class="stat-label">總正確率：</span>
+                <span class="stat-val-wrap">
+                  <strong id="accuracyRate" class="highlight">0%</strong>
+                  <span id="allDetailCounts" class="stat-sub-detail">(對 0 · 錯 0)</span>
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Filter Right Controls (Batch Shuffle & View Modes) -->
+          <div class="filter-controls-right">
+            <div class="shuffle-batch-actions">
+              <button id="batchShuffleBtn" class="shuffle-batch-btn" title="隨機打亂所有題目的選項順序 (保留作答紀錄)">
+                <svg class="svg-icon" viewBox="0 0 24 24" style="width: 13px; height: 13px;"><path d="M2 18h1.4c1.3 0 2.5-.6 3.3-1.7l6.1-8.6c.8-1.1 2-1.7 3.3-1.7H22M2 6h1.4c1.3 0 2.5.6 3.3 1.7l1.7 2.4M14.5 13.9l1.6 2.4c.8 1.1 2 1.7 3.3 1.7H22M18 2l4 4-4 4M18 14l4 4-4 4"/></svg>
+                <span>全部洗牌</span>
+              </button>
+              <button id="batchRestoreBtn" class="shuffle-batch-btn" title="將所有題目的選項順序復原為原考卷順序">
+                <svg class="svg-icon" viewBox="0 0 24 24" style="width: 13px; height: 13px;"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg>
+                <span>全部復原</span>
+              </button>
+            </div>
+
+            <!-- View Switcher -->
+            <div class="view-mode-toggle">
+              <button id="viewListBtn" class="view-mode-btn active" title="所有題目清單列表">
+                <svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>
+                清單模式
+              </button>
+              <button id="viewFocusBtn" class="view-mode-btn" title="單題翻頁專注作答">
+                <svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/></svg>
+                專注模式
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Focus Mode Controls -->
+        <div id="focusModeControls" class="focus-mode-container" style="display: none;">
+          <div class="focus-nav-bar">
+            <button id="focusPrevBtn" class="btn btn-secondary">
+              <svg class="svg-icon" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg>
+              上一題<span class="kbd-hint"> (←)</span>
+            </button>
+            <div class="focus-progress-info">
+              第 <span id="focusCurrentIndex">1</span> / <span id="focusTotalCount">1</span> 題
+            </div>
+            <div class="focus-progress-bar-wrap">
+              <div id="focusProgressBar" class="focus-progress-bar-inner" style="width: 0%;"></div>
+            </div>
+            <button id="focusNextBtn" class="btn btn-primary">
+              下一題<span class="kbd-hint"> (→)</span>
+              <svg class="svg-icon" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Question Cards List Container -->
+        <div id="questionsContainer" class="question-cards-container">
+          <!-- Rendered by app.js -->
+        </div>
+
+        <!-- Empty State -->
+        <div id="emptyState" class="empty-state" style="display: none;">
+          <h2 class="empty-title">沒有找到符合條件的考題</h2>
+          <p class="empty-desc">請嘗試調整主題篩選、勾選更多年份、或清空搜尋關鍵字。</p>
+          <button id="resetFiltersBtn" class="btn btn-primary">重設所有篩選條件</button>
+        </div>
+
+        <!-- Pagination Bar -->
+        <div id="paginationBar" class="pagination-bar" style="display: none;">
+          <button id="loadMoreBtn" class="btn btn-secondary">載入更多題目...</button>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- Random Quiz Configuration Modal -->
+  <div id="quizConfigModal" class="modal-overlay">
+    <div class="quiz-dialog">
+      <h2 class="dialog-title">隨機抽題測驗</h2>
+      <p class="dialog-desc">自訂隨機出題範圍與題數，快速檢驗複習成效與答題熟悉度。</p>
+      
+      <div class="form-group">
+        <label class="form-label">選擇抽題數量：</label>
+        <div class="quiz-count-options">
+          <div class="count-chip active" data-quiz-count="10">10 題</div>
+          <div class="count-chip" data-quiz-count="20">20 題</div>
+          <div class="count-chip" data-quiz-count="30">30 題</div>
+          <div class="count-chip" data-quiz-count="50">50 題</div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">出題範圍：</label>
+        <select id="quizScopeSelect" class="select-input">
+          <option value="filtered">依目前篩選的主題與年份範圍抽題</option>
+          <option value="all">從本科目全部題庫中隨機抽題</option>
+          <option value="repeats">僅從跨年高頻重複考題中抽題</option>
+          <option value="mistakes">僅從我的錯題中抽題</option>
+        </select>
+      </div>
+
+      <div class="dialog-actions">
+        <button id="closeQuizConfigBtn" class="btn btn-secondary">取消</button>
+        <button id="startQuizBtn" class="btn btn-primary">開始測驗</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quiz Score Modal -->
+  <div id="quizScoreModal" class="modal-overlay">
+    <div class="quiz-dialog">
+      <h2 class="dialog-title">測驗成果報告</h2>
+      <div class="score-summary-box">
+        <div class="score-number" id="quizFinalScore">100</div>
+        <p style="color: var(--text-muted); font-size: 0.85rem;">測驗成績</p>
+        <div class="score-stats-grid">
+          <div class="score-stat-cell">
+            <div class="val" id="quizTotalQuestionsCount">0</div>
+            <div class="lbl">總題數</div>
+          </div>
+          <div class="score-stat-cell">
+            <div class="val" style="color: var(--accent-correct);" id="quizCorrectCount">0</div>
+            <div class="lbl">答對</div>
+          </div>
+          <div class="score-stat-cell">
+            <div class="val" style="color: var(--accent-wrong);" id="quizWrongCount">0</div>
+            <div class="lbl">答錯</div>
+          </div>
+        </div>
+      </div>
+      <div class="dialog-actions">
+        <button id="reviewQuizMistakesBtn" class="btn btn-secondary">檢討錯題</button>
+        <button id="closeQuizScoreBtn" class="btn btn-primary">完成</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cloud Sync Modal (GitHub Gist) -->
+  <div id="syncModal" class="modal-overlay">
+    <div class="modal-dialog sync-dialog">
+      <div class="dialog-header-row">
+        <div>
+          <h3 class="dialog-title">跨裝置進度同步 (GitHub Gist)</h3>
+          <p class="dialog-desc">利用您的 GitHub Gist 進行私人雲端存檔，免架設伺服器，可在手機與電腦間同步匯入的題庫、作答紀錄、收藏與設定。</p>
+        </div>
+        <button id="closeSyncModalBtn" class="dialog-close-btn" aria-label="關閉同步視窗">
+          <svg class="svg-icon" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <!-- Sync Status Banner -->
+      <div id="syncStatusBanner" class="sync-status-banner info">
+        <svg class="svg-icon banner-icon-svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <div id="syncStatusText" class="banner-text">請輸入 GitHub Token 與 Gist ID 以開始同步。</div>
+      </div>
+
+      <!-- Configuration Card -->
+      <div class="sync-card">
+        <div class="form-group">
+          <div class="form-label-row">
+            <label class="form-label" for="syncGithubToken">GitHub Personal Access Token (PAT)</label>
+            <a href="https://github.com/settings/tokens/new?scopes=gist&description=GPAHelperSync" target="_blank" rel="noopener noreferrer" class="link-small">建立 Token (僅需勾選 gist) ↗</a>
+          </div>
+          <div class="input-password-wrap">
+            <input type="password" id="syncGithubToken" class="text-input" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" autocomplete="off" spellcheck="false">
+            <button type="button" id="toggleTokenVisibilityBtn" class="input-inline-btn" title="顯示/隱藏 Token">
+              <svg class="svg-icon" viewBox="0 0 24 24"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+          <span class="field-hint">Token 僅儲存在您此裝置的本機瀏覽器中，請放心使用。</span>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 0.25rem;">
+          <div class="form-label-row">
+            <label class="form-label" for="syncGistId">Gist ID (存檔識別碼)</label>
+            <span class="field-hint-inline">首次使用可直接點自動建立</span>
+          </div>
+          <div class="input-group-row">
+            <input type="text" id="syncGistId" class="text-input" placeholder="例如：a1b2c3d4e5f6..." autocomplete="off" spellcheck="false">
+            <button type="button" id="autoCreateGistBtn" class="btn btn-secondary" title="在 GitHub 自動建立專屬 Private Gist 存檔">
+              自動建立新存檔
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Actions Section -->
+      <div class="sync-action-options">
+        <button id="syncMergeBtn" class="btn btn-primary sync-major-btn" title="雙向整合本機與雲端的最新作答與收藏">
+          <svg class="svg-icon sync-btn-icon" viewBox="0 0 24 24"><path d="m18 15-6-6-6 6"/><path d="m18 9-6-6-6 6"/></svg>
+          <div class="btn-stack-text">
+            <strong>雙向智慧合併 (Merge - 推薦)</strong>
+            <span>自動整合兩端紀錄，保留所有已答對題目與收藏，不覆蓋任何新進度</span>
+          </div>
+        </button>
+
+        <div class="sync-secondary-actions">
+          <button id="syncPushBtn" class="btn btn-secondary" title="以目前本機進度覆蓋雲端">
+            <svg class="svg-icon" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            <span>上傳覆蓋雲端 (Push)</span>
+          </button>
+          <button id="syncPullBtn" class="btn btn-secondary" title="由雲端下載並覆蓋目前本機進度">
+            <svg class="svg-icon" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            <span>下載覆蓋本機 (Pull)</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Offline / Local JSON Backup Fallback -->
+      <div class="sync-offline-section">
+        <div class="section-divider-text">
+          <span>或使用本機檔案備份</span>
+        </div>
+        <div class="offline-backup-btns">
+          <button id="exportJsonBtn" class="btn btn-secondary btn-sm" title="將當前作答紀錄匯出為 JSON 檔案">
+            <svg class="svg-icon" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            <span>匯出進度 JSON</span>
+          </button>
+          <button id="importJsonBtn" class="btn btn-secondary btn-sm" title="匯入 JSON 檔案並合併進度">
+            <svg class="svg-icon" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            <span>匯入進度 JSON</span>
+          </button>
+          <input type="file" id="importJsonFileInput" accept=".json" style="display:none;">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Subject Picker Modal -->
+  <div id="subjectModal" class="modal-overlay">
+    <div class="modal-dialog sync-dialog subject-dialog">
+      <div class="dialog-header-row">
+        <div>
+          <h3 class="dialog-title">選擇科目</h3>
+          <p class="dialog-desc" style="margin-bottom: 0;">每個科目的作答紀錄、錯題與收藏皆獨立保存。</p>
+        </div>
+        <button id="closeSubjectModalBtn" class="dialog-close-btn" aria-label="關閉科目選單">
+          <svg class="svg-icon" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div id="subjectGrid" class="subject-grid">
+        <!-- Rendered by app.js -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Import Question Bank Modal -->
+  <div id="importModal" class="modal-overlay">
+    <div class="modal-dialog sync-dialog import-dialog" role="dialog" aria-modal="true" aria-labelledby="importDialogTitle">
+      <div class="dialog-header-row">
+        <div>
+          <h3 class="dialog-title" id="importDialogTitle">匯入題庫</h3>
+          <p class="dialog-desc" style="margin-bottom: 0;">題庫會存在這個瀏覽器中。設定「雲端同步」後，其他裝置同步一次就能取得。</p>
+        </div>
+        <button id="closeImportModalBtn" class="dialog-close-btn" aria-label="關閉匯入視窗">
+          <svg class="svg-icon" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <div class="import-tabs" role="tablist" aria-label="匯入方式">
+        <button type="button" class="import-tab active" data-import-tab="file" role="tab" aria-selected="true">選擇檔案</button>
+        <button type="button" class="import-tab" data-import-tab="paste" role="tab" aria-selected="false">貼上文字</button>
+        <button type="button" class="import-tab" data-import-tab="url" role="tab" aria-selected="false">網址</button>
+      </div>
+
+      <div class="import-pane" data-import-pane="file">
+        <label class="import-dropzone" id="importDropzone" for="importFileInput">
+          <svg class="svg-icon" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          <strong>選擇題庫 JSON 檔</strong>
+          <span>或把檔案拖曳到這裡</span>
+        </label>
+        <input type="file" id="importFileInput" accept=".json,application/json" hidden>
+      </div>
+
+      <div class="import-pane" data-import-pane="paste" hidden>
+        <textarea id="importPasteInput" class="text-input import-textarea" spellcheck="false" placeholder='把題庫 JSON 整段貼在這裡，例如：
+[
+  { "id": "Q0001", "topic": "Cells", "stem": "題幹", "options": { "A": "…", "B": "…" }, "answer": "A", "explanation": "詳解" }
+]'></textarea>
+        <button type="button" id="importPasteBtn" class="btn btn-secondary">讀取貼上的內容</button>
+      </div>
+
+      <div class="import-pane" data-import-pane="url" hidden>
+        <div class="input-group-row">
+          <input type="url" id="importUrlInput" class="text-input" placeholder="https://gist.github.com/…" spellcheck="false" autocomplete="off">
+          <button type="button" id="importUrlBtn" class="btn btn-secondary">讀取</button>
+        </div>
+        <span class="field-hint">支援 Gist 頁面、GitHub 檔案頁面與 Raw 連結。注意：拿到網址的人都能看到題庫內容。</span>
+      </div>
+
+      <div id="importStatus" class="sync-status-banner info" hidden>
+        <div id="importStatusText" class="banner-text"></div>
+      </div>
+
+      <div id="importPreview" class="import-preview" hidden>
+        <div id="importSummary" class="import-summary"></div>
+        <details id="importWarnings" class="import-warnings" hidden>
+          <summary></summary>
+          <ul></ul>
+        </details>
+
+        <div class="import-form-grid">
+          <div class="form-group">
+            <label class="form-label" for="importNameInput">科目名稱 <span class="required-mark">*</span></label>
+            <input type="text" id="importNameInput" class="text-input" maxlength="60" placeholder="例如：微生物學及免疫學" autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="importSubtitleInput">副標題</label>
+            <input type="text" id="importSubtitleInput" class="text-input" maxlength="60" placeholder="例如：一段 110–114" autocomplete="off">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="importDescInput">簡介</label>
+          <input type="text" id="importDescInput" class="text-input" maxlength="300" placeholder="選填，顯示在科目選單" autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="importIdInput">科目代號</label>
+          <input type="text" id="importIdInput" class="text-input" maxlength="48" placeholder="英數字與 -，例如 microimmuno-1" spellcheck="false" autocomplete="off">
+          <span id="importIdHint" class="field-hint"></span>
+        </div>
+        <label id="importSyncRow" class="import-check">
+          <input type="checkbox" id="importSyncCheckbox" checked>
+          <span>匯入後一併上傳到雲端 Gist（其他裝置同步後即可使用）</span>
+        </label>
+
+        <div class="dialog-actions">
+          <button type="button" id="importCancelBtn" class="btn btn-secondary">取消</button>
+          <button type="button" id="importConfirmBtn" class="btn btn-primary">匯入題庫</button>
+        </div>
+      </div>
+
+      <details class="import-format-help">
+        <summary>題庫格式說明</summary>
+        <div class="import-format-body">
+          <p>可以直接匯入<strong>題目陣列</strong>，或加上科目資訊與共用圖片的完整格式：</p>
+<pre>{
+  "subject": { "id": "physiology-1", "name": "生理學", "subtitle": "一段" },
+  "images": { "heart.png": "data:image/png;base64,…" },
+  "questions": [
+    {
+      "id": "Q0001",
+      "topic": "Cardiovascular",
+      "stem": "題幹",
+      "options": { "A": "選項 A", "B": "選項 B", "C": "選項 C", "D": "選項 D" },
+      "answer": "B",
+      "explanation": "詳解",
+      "years": [112, 113],
+      "image": "heart.png"
+    }
+  ]
+}</pre>
+          <p>必填：<code>stem</code>（題幹）。有選項時需要 <code>answer</code>，多個正解寫成 <code>"A/C"</code>。圖片可寫在 <code>images</code> 裡讓多題共用，或直接用 <code>https://</code> 圖片網址。為了安全，題目中的程式碼與外部連結會被移除，只保留粗體、上下標、換行等基本格式。</p>
+        </div>
+      </details>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <!-- Image Lightbox Modal -->
+  <div id="imageLightbox" class="image-lightbox">
+    <img id="lightboxImg" src="" alt="放大題目插圖">
+  </div>
+
+  <!-- Tweaks Floating Panel (Mandated by web-design-engineer skill) -->
+  <button id="tweaksToggleBtn" class="tweaks-toggle-btn" title="調整閱讀與版面設定 (Tweaks)">
+    <svg class="svg-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+  </button>
+  <div id="tweaksPanel" class="tweaks-panel">
+    <div class="tweaks-panel-header">
+      <span>閱讀與介面 Tweaks</span>
+      <button id="tweaksCloseBtn" style="background:none;border:none;color:var(--text-muted);cursor:pointer;">✕</button>
+    </div>
+    <div class="tweaks-group">
+      <label class="tweaks-label">介面色彩風格</label>
+      <select id="tweakTheme" class="select-input">
+        <option value="light">清爽淺色 (預設)</option>
+        <option value="dark">沉浸深色</option>
+      </select>
+    </div>
+    <div class="tweaks-group">
+      <label class="tweaks-label">文字大小</label>
+      <select id="tweakFontSize" class="select-input">
+        <option value="normal">標準 (15px)</option>
+        <option value="large">清晰大字 (16.5px)</option>
+      </select>
+    </div>
+    <div class="tweaks-group">
+      <label class="tweaks-label">版面密度</label>
+      <select id="tweakDensity" class="select-input">
+        <option value="comfortable">舒適間距 (預設)</option>
+        <option value="compact">緊湊高效</option>
+      </select>
+    </div>
+    <div class="tweaks-group">
+      <div class="tweaks-toggle-row">
+        <span>自動展開重複題對比</span>
+        <input type="checkbox" id="tweakAutoExpandDuplicates">
+      </div>
+    </div>
+    <div class="tweaks-group">
+      <div class="tweaks-toggle-row">
+        <div>
+          <span>隨機打亂選項順序</span>
+          <div style="font-size: 0.68rem; color: var(--text-muted); margin-top: 2px;">打亂 A/B/C/D 選項文字，防死記答案順序</div>
+        </div>
+        <input type="checkbox" id="tweakShuffleOptions">
+      </div>
+      <div class="tweaks-btn-row" style="margin-top: 0.6rem; display: flex; gap: 0.4rem;">
+        <button type="button" id="tweakBatchShuffleBtn" class="btn btn-secondary btn-sm" style="flex: 1; justify-content: center; font-size: 0.75rem;">
+          <svg class="svg-icon" viewBox="0 0 24 24" style="width: 12px; height: 12px;"><path d="M2 18h1.4c1.3 0 2.5-.6 3.3-1.7l6.1-8.6c.8-1.1 2-1.7 3.3-1.7H22M2 6h1.4c1.3 0 2.5.6 3.3 1.7l1.7 2.4M14.5 13.9l1.6 2.4c.8 1.1 2 1.7 3.3 1.7H22M18 2l4 4-4 4M18 14l4 4-4 4"/></svg>
+          <span>全部洗牌</span>
+        </button>
+        <button type="button" id="tweakBatchRestoreBtn" class="btn btn-secondary btn-sm" style="flex: 1; justify-content: center; font-size: 0.75rem;">
+          <svg class="svg-icon" viewBox="0 0 24 24" style="width: 12px; height: 12px;"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg>
+          <span>全部復原</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="subjects/index.js?v=4.2"></script>
+  <!-- Local-only subjects (not deployed; see .gitignore). A 404 here on GitHub Pages is expected. -->
+  <script src="subjects/local.js"></script>
+  <script src="bank-store.js?v=4.2"></script>
+  <script src="app.js?v=4.2"></script>
+</body>
+</html>
